@@ -1,4 +1,4 @@
-import { Volunteer } from '../models/volunteer';
+import { Volunteer, VolunteerStatus } from '../models/volunteer';
 import { VolunteerRepository } from './volunteer.repository';
 
 export class VolunteerService {
@@ -11,9 +11,20 @@ export class VolunteerService {
     email: string;
     phone?: string;
     skills?: string[];
-    status?: 'active' | 'inactive';
+    status?: VolunteerStatus;
   }): Promise<Volunteer> {
-    return this.repo.create(input);
+    // Build a fully-typed object for the repository
+    const data: Omit<Volunteer, 'id' | 'createdAt'> = {
+      organizationId: input.organizationId,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email,
+      phone: input.phone,
+      skills: input.skills ?? [],
+      status: input.status ?? 'active'   // ✅ default so it's never undefined
+    };
+
+    return this.repo.create(data);
   }
 
   async getById(id: string): Promise<Volunteer | null> {
