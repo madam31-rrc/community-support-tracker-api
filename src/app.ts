@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import apiV1Router from './api/v1/routes/index';
 import { openapi } from './api/v1/docs/openapi';
+import { apiRateLimiter } from './api/v1/middleware/rate-limit.middleware';
 
 const app = express();
 
@@ -16,9 +17,8 @@ app.use(express.json());
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
-app.use('/api/v1', apiV1Router);
+app.use('/api/v1', apiRateLimiter, apiV1Router);
 
-// final error handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const status = err.status || 500;
   res.status(status).json({
