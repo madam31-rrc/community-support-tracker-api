@@ -1,76 +1,33 @@
-import express, { Application } from 'express';
-import cors from 'cors';
+import express from 'express';
 import helmet from 'helmet';
-import compression from 'compression';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
-import { config } from './config/env';
-import { swaggerSpec } from './config/swagger';
-import { errorHandler, notFoundHandler } from './api/middleware/error.middleware';
-import { apiLimiter } from './api/middleware/rate-limit.middleware';
-import { logger } from './api/utils/logger';
 
-export const createApp = (): Application => {
-  const app = express();
+import { env } from './config/env';
+import apiV1Router from './api/v1/routes/index';
+import { openapi } from './api/v1/docs/openapi';
 
-  app.use(
-    helmet({
-      contentSecurityPolicy: config.isProduction,
-      crossOriginEmbedderPolicy: config.isProduction,
-    })
-  );
+const app = express();
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
+app.use(helmet());
+app.use(cors({ origin: env.corsOrigin }));
+app.use(express.json());
 
-        if (config.cors.origins.includes(origin) || config.cors.origins.includes('*')) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true,
-    })
-  );
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
+app.use('/api/v1', apiV1Router);
 
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-  app.use(compression());
-
-  app.use(`/api/${config.apiVersion}`, apiLimiter);
-
-  app.get('/health', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: config.env,
-    });
+// final error handler
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const status = err.status || 500;
+  res.status(status).json({
+    status,
+    code: err.code || 'INTERNAL_ERROR',
+    message: err.message || 'Something went wrong',
+    details: err.details
   });
+});
 
-  app.use(
-    '/api-docs',
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
-      explorer: true,
-      customSiteTitle: 'Volunteer Management API Docs',
-    })
-  );
+export default app;
 
-  import organizationRoutes from './modules/organizations/organization.routes';
-  
-  app.use(`/api/${config.apiVersion}/organizations`, organizationRoutes);
-
-  app.use(notFoundHandler);
-
-  app.use(errorHandler);
-
-  logger.info('Express application configured');
-
-  return app;
-};
-
-export default createApp;
