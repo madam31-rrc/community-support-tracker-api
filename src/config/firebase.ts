@@ -2,18 +2,17 @@ import admin from 'firebase-admin';
 import { env } from './env';
 
 let initialized = false;
-export function getFirebase() {
+
+export function getFirebaseApp(): admin.app.App {
   if (!initialized) {
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: env.firebase.projectId,
-          clientEmail: env.firebase.clientEmail,
-          privateKey: env.firebase.privateKey
-        })
-      });
-    }
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: env.firebase.projectId,
+        clientEmail: env.firebase.clientEmail,
+        privateKey: env.firebase.privateKey
+      })
+    });
     initialized = true;
   }
-  return admin;
+  return admin.app();
 }
