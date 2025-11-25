@@ -28,9 +28,16 @@ export class VolunteerRepository {
   }
 
   async findAll(): Promise<Volunteer[]> {
+  try {
+    console.log('🔍 Fetching all volunteers...');
     const snap = await this.db.collection(COLLECTION).get();
+    console.log('✅ Found', snap.docs.length, 'volunteers');
     return snap.docs.map((d) => d.data() as Volunteer);
+  } catch (error) {
+    console.error('❌ Error fetching volunteers:', error);
+    throw error;
   }
+}
 
   async findByOrganization(orgId: string): Promise<Volunteer[]> {
     const snap = await this.db
