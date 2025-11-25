@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { getFirebaseApp } from '../../../config/firebase';
-import { env } from '../../../config/env';
 
 export type UserRole = 'admin' | 'manager' | 'volunteer' | 'viewer';
 
@@ -18,30 +17,56 @@ declare global {
   }
 }
 
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   try {
-    if (env.isTest) {
-      req.user = { uid: 'test-user', orgId: 'test-org', role: 'admin' };
-      return next();
-    }
-
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    
+    console.log('=== AUTH DEBUG ===');
+    console.log('Auth header exists:', !!authHeader);
+    console.log('Auth header preview:', authHeader?.substring(0, 50));
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ Missing or invalid Authorization header');
+      return res.status(401).json({
+        status: 401,
+        message: 'Missing or invalid Authorization header'
+      });
     }
 
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.replace('Bearer ', '').trim();
+    console.log('Token length:', token.length);
+    console.log('Token preview:', token.substring(0, 30) + '...');
+
     const firebase = getFirebaseApp();
-    const decoded = await firebase.auth().verifyIdToken(token);
+    console.log('Firebase app initialized:', !!firebase);
+    
+    console.log('Attempting to verify token...');
+    const decodedToken = await firebase.auth().verifyIdToken(token);
+    console.log('✅ Token verified successfully!');
+    console.log('User UID:', decodedToken.uid);
 
     req.user = {
-      uid: decoded.uid,
-      orgId: (decoded as any).orgId,
-      role: (decoded as any).role
+      uid: decodedToken.uid,
+      orgId: (decodedToken as any).orgId,
+      role: (decodedToken as any).role || 'viewer'
     };
 
     return next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Unauthorized' });
+  } catch (error) {
+    console.error('❌ Auth error details:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error name:', error.name);
+    }
+    return res.status(401).json({
+      status: 401,
+      message: 'Invalid or expired token',
+      debug: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
