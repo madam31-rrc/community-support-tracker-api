@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-router.use(requireAuth); // protect all org routes for now
+router.use(requireAuth);
 
 router.post('/', createOrganization);
 router.get('/', listOrganizations);
