@@ -1,7 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import swaggerUi from 'swagger-ui-express';
+import { swaggerUi, swaggerSpec } from "./config/swagger";
+
 
 import { env } from './config/env';
 import apiV1Router from './api/v1/routes/index';
@@ -15,7 +16,7 @@ app.use(cors({ origin: env.corsOrigin }));
 app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapi));
 app.use('/api/v1', apiRateLimiter, apiV1Router);
 
