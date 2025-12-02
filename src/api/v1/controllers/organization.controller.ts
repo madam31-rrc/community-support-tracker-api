@@ -5,6 +5,7 @@ import {
 } from '../models/organization';
 import { OrganizationService } from '../organizations/organization.service';
 import { HttpError } from '../errors/http-errors';
+import { OrganizationFilters, OrganizationSort } from '../organizations/organization.repository';
 
 const service = new OrganizationService();
 
@@ -26,13 +27,54 @@ export async function createOrganization(
 }
 
 export async function listOrganizations(
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const items = await service.list();
-    res.json(items);
+    // Parse query parameters for filtering
+    const filters: OrganizationFilters = {};
+
+    if (req.query.status) {
+      filters.status = String(req.query.status) as any;
+    }
+
+    if (req.query.search) {
+      filters.search = String(req.query.search);
+    }
+
+    // Parse sorting
+    let sort: OrganizationSort | undefined;
+    if (req.query.sortBy) {
+      const sortField = String(req.query.sortBy) as any;
+      const sortDirection = (String(req.query.sortOrder || 'asc')) as 'asc' | 'desc';
+
+      sort = {
+        field: sortField,
+        direction: sortDirection
+      };
+    }
+
+    // Parse pagination
+    const limit = req.query.limit ? parseInt(String(req.query.limit)) : 10;
+    const page = req.query.page ? parseInt(String(req.query.page)) : 1;
+    const offset = (page - 1) * limit;
+
+    const pagination = { limit, offset };
+
+    // Use advanced filtering
+    const result = await service.listWithFilters(filters, sort, pagination);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: Math.ceil(result.total / (result.limit || 10))
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -44,11 +86,11 @@ export async function getOrganization(
   next: NextFunction
 ) {
   try {
-    const org = await service.getById(req.params.id);
-    if (!org) {
+    const organization = await service.getById(req.params.id);
+    if (!organization) {
       throw new HttpError(404, 'Organization not found', 'NOT_FOUND');
     }
-    res.json(org);
+    res.json(organization);
   } catch (err) {
     next(err);
   }
