@@ -3,6 +3,11 @@ import Joi from 'joi';
 export interface Organization {
   id: string;
   name: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  status?: 'active' | 'inactive';
   slug?: string;
   createdAt: string;
   updatedAt?: string;
