@@ -13,6 +13,33 @@ const router = Router();
 router.use(requireAuth);
 
 router.post('/', createOrganization);
+/**
+ * @openapi
+ * /api/v1/organizations:
+ *   get:
+ *     summary: Get all organizations
+ *     tags:
+ *       - Organizations
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search organizations by name
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *     responses:
+ *       200:
+ *         description: Successful response
+ */
+
 router.get('/', listOrganizations);
 router.get('/:id', getOrganization);
 router.patch('/:id', updateOrganization);
