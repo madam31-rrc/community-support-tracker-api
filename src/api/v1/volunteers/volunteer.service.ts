@@ -1,5 +1,10 @@
 import { Volunteer, VolunteerStatus } from '../models/volunteer';
-import { VolunteerRepository } from './volunteer.repository';
+import {
+  VolunteerRepository,
+  VolunteerFilters,
+  VolunteerSort,
+  PaginationOptions
+} from './volunteer.repository';
 
 export class VolunteerService {
   constructor(private repo = new VolunteerRepository()) {}
@@ -13,7 +18,6 @@ export class VolunteerService {
     skills?: string[];
     status?: VolunteerStatus;
   }): Promise<Volunteer> {
-    // Build a fully-typed object for the repository
     const data: Omit<Volunteer, 'id' | 'createdAt'> = {
       organizationId: input.organizationId,
       firstName: input.firstName,
@@ -21,7 +25,7 @@ export class VolunteerService {
       email: input.email,
       phone: input.phone,
       skills: input.skills ?? [],
-      status: input.status ?? 'active'   // ✅ default so it's never undefined
+      status: input.status ?? 'active'
     };
 
     return this.repo.create(data);
@@ -36,6 +40,20 @@ export class VolunteerService {
       return this.repo.findByOrganization(orgId);
     }
     return this.repo.findAll();
+  }
+
+  async listWithFilters(
+    filters: VolunteerFilters = {},
+    sort?: VolunteerSort,
+    pagination?: PaginationOptions
+  ): Promise<{ data: Volunteer[]; total: number; page?: number; limit?: number }> {
+    const result = await this.repo.findWithFilters(filters, sort, pagination);
+
+    return {
+      ...result,
+      page: pagination?.offset ? Math.floor(pagination.offset / (pagination.limit || 10)) + 1 : 1,
+      limit: pagination?.limit
+    };
   }
 
   async update(
