@@ -1,10 +1,15 @@
 import { Organization } from '../models/organization';
-import { OrganizationRepository } from './organization.repository';
+import {
+  OrganizationsRepository,
+  OrganizationFilters,
+  OrganizationSort,
+  PaginationOptions
+} from '../organizations/organization.repository';
 
 export class OrganizationService {
-  constructor(private repo = new OrganizationRepository()) {}
+  constructor(private repo = new OrganizationsRepository()) {}
 
-  async create(input: { name: string; slug?: string }): Promise<Organization> {
+  async create(input: Omit<Organization, 'id' | 'createdAt'>): Promise<Organization> {
     return this.repo.create(input);
   }
 
@@ -16,10 +21,22 @@ export class OrganizationService {
     return this.repo.findAll();
   }
 
-  async update(
-    id: string,
-    patch: Partial<Organization>
-  ): Promise<Organization | null> {
+  
+  async listWithFilters(
+    filters: OrganizationFilters = {},
+    sort?: OrganizationSort,
+    pagination?: PaginationOptions
+  ): Promise<{ data: Organization[]; total: number; page?: number; limit?: number }> {
+    const result = await this.repo.findWithFilters(filters, sort, pagination);
+
+    return {
+      ...result,
+      page: pagination?.offset ? Math.floor(pagination.offset / (pagination.limit || 10)) + 1 : 1,
+      limit: pagination?.limit
+    };
+  }
+
+  async update(id: string, patch: Partial<Organization>): Promise<Organization | null> {
     return this.repo.update(id, patch);
   }
 
