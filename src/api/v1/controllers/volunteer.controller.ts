@@ -5,6 +5,7 @@ import {
 } from '../models/volunteer';
 import { VolunteerService } from '../volunteers/volunteer.service';
 import { HttpError } from '../errors/http-errors';
+import { VolunteerFilters, VolunteerSort } from '../volunteers/volunteer.repository';
 
 const service = new VolunteerService();
 
@@ -31,11 +32,58 @@ export async function listVolunteers(
   next: NextFunction
 ) {
   try {
-    const { organizationId } = req.query;
-    const items = await service.list(
-      organizationId ? String(organizationId) : undefined
-    );
-    res.json(items);
+    // Parse query parameters for filtering
+    const filters: VolunteerFilters = {};
+    
+    if (req.query.organizationId) {
+      filters.organizationId = String(req.query.organizationId);
+    }
+    
+    if (req.query.status) {
+      filters.status = String(req.query.status) as any;
+    }
+    
+    if (req.query.skills) {
+      // Support comma-separated skills: ?skills=cooking,driving
+      filters.skills = String(req.query.skills).split(',').map(s => s.trim());
+    }
+    
+    if (req.query.search) {
+      filters.search = String(req.query.search);
+    }
+
+    // Parse sorting
+    let sort: VolunteerSort | undefined;
+    if (req.query.sortBy) {
+      const sortField = String(req.query.sortBy) as any;
+      const sortDirection = (String(req.query.sortOrder || 'asc')) as 'asc' | 'desc';
+      
+      sort = {
+        field: sortField,
+        direction: sortDirection
+      };
+    }
+
+    // Parse pagination
+    const limit = req.query.limit ? parseInt(String(req.query.limit)) : 10;
+    const page = req.query.page ? parseInt(String(req.query.page)) : 1;
+    const offset = (page - 1) * limit;
+
+    const pagination = { limit, offset };
+
+    // Use advanced filtering
+    const result = await service.listWithFilters(filters, sort, pagination);
+
+    res.json({
+      success: true,
+      data: result.data,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: Math.ceil(result.total / (result.limit || 10))
+      }
+    });
   } catch (err) {
     next(err);
   }
