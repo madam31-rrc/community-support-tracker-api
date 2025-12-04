@@ -1,5 +1,4 @@
 import request from 'supertest';
-import { createApp } from '/app';
 import { Application } from 'express';
 
 jest.mock('../../../config/firebase');
@@ -225,3 +224,7 @@ describe('Organization API Integration Tests', () => {
     });
   });
 });
+
+function createApp(): Application {
+  throw new Error('Function not implemented.');
+}

@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1764038677446" clover="3.2.0">
-  <project timestamp="1764038677446" name="All files">
-    <metrics statements="8" coveredstatements="8" conditionals="1" coveredconditionals="1" methods="6" coveredmethods="6" elements="15" coveredelements="15" complexity="0" loc="8" ncloc="8" packages="1" files="1" classes="1"/>
+<coverage generated="1764866092105" clover="3.2.0">
+  <project timestamp="1764866092105" name="All files">
+    <metrics statements="10" coveredstatements="8" conditionals="6" coveredconditionals="1" methods="7" coveredmethods="6" elements="23" coveredelements="15" complexity="0" loc="10" ncloc="10" packages="1" files="1" classes="1"/>
     <file name="organization.service.ts" path="C:\Users\SAFIIRULISLAM\Projects\Milestone\src\api\v1\organizations\organization.service.ts">
-      <metrics statements="8" coveredstatements="8" conditionals="1" coveredconditionals="1" methods="6" coveredmethods="6"/>
+      <metrics statements="10" coveredstatements="8" conditionals="6" coveredconditionals="1" methods="7" coveredmethods="6"/>
       <line num="2" count="2" type="stmt"/>
-      <line num="4" count="2" type="stmt"/>
-      <line num="5" count="2" type="cond" truecount="1" falsecount="0"/>
-      <line num="8" count="1" type="stmt"/>
-      <line num="12" count="2" type="stmt"/>
-      <line num="16" count="1" type="stmt"/>
-      <line num="23" count="1" type="stmt"/>
-      <line num="27" count="1" type="stmt"/>
+      <line num="9" count="2" type="stmt"/>
+      <line num="10" count="2" type="cond" truecount="1" falsecount="0"/>
+      <line num="13" count="1" type="stmt"/>
+      <line num="17" count="2" type="stmt"/>
+      <line num="21" count="1" type="stmt"/>
+      <line num="30" count="0" type="stmt"/>
+      <line num="32" count="0" type="stmt"/>
+      <line num="40" count="1" type="stmt"/>
+      <line num="44" count="1" type="stmt"/>
     </file>
   </project>
 </coverage>
